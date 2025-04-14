@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Purchase Orders</title>
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #purchaseOrderList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .purchase-order-card {
+            width: calc(33.333% - 10px);
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .purchase-order-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .purchase-order-card h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+
+        .purchase-order-card p {
+            margin: 5px 0;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .purchase-order-details {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .purchase-order-details h3 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vendor Purchase Orders</h1>
+    <label for="vendorId">Enter Vendor ID:</label>
+    <input type="text" id="vendorId">
+    <button onclick="fetchPurchaseOrders()">Get Purchase Orders</button>
+
+    <h2>Purchase Orders:</h2>
+    <div id="purchaseOrderList"></div>
+
+    <div class="purchase-order-details" id="purchaseOrderDetails" style="display: none;">
+        <h3>Purchase Order Details</h3>
+        <p id="purchaseOrderInfo"></p>
+        <label for="status">Change Status:</label>
+        <select id="status">
+            <option value="Created">Created</option>
+            <option value="Fulfilled">Fulfilled</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <button onclick="updatePurchaseOrderStatus()">Update Status</button>
+    </div>
+
+    <script>
+        let selectedOrderId;
+
+        function fetchPurchaseOrders() {
+            const vendorId = document.getElementById('vendorId').value;
+            if (!vendorId) {
+                alert('Please enter a Vendor ID.');
+                return;
+            }
+
+            fetch(`http://localhost:3000/get-purchase-orders?vendorId=${vendorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    const purchaseOrderList = document.getElementById('purchaseOrderList');
+                    purchaseOrderList.innerHTML = '';
+
+                    data.purchaseOrders.forEach(order => {
+                        const orderCard = document.createElement('div');
+                        orderCard.className = 'purchase-order-card';
+
+                        orderCard.innerHTML = `
+                            <h3>Order ID: ${order.OrderID}</h3>
+                            <p><strong>Status:</strong> ${order.OrderStatus}</p>
+                            <p><strong>Total Cost:</strong> ${order.TotalCost}</p>
+                            <p><strong>Quantity:</strong> ${order.Quantity}</p>
+                            <button onclick="displayPurchaseOrderDetails(${order.OrderID})">See Details</button>
+                        `;
+
+                        purchaseOrderList.appendChild(orderCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching purchase orders:', error);
+                    alert('An error occurred while fetching purchase orders.');
+                });
+        }
+
+        function displayPurchaseOrderDetails(orderId) {
+            selectedOrderId = orderId;
+
+            
+            fetch(`http://localhost:3000/get-purchase-orders?vendorId=${document.getElementById('vendorId').value}`)
+                .then(response => response.json())
+                .then(data => {
+                    const order = data.purchaseOrders.find(order => order.OrderID === selectedOrderId);
+
+                    if (!order) {
+                        alert('Purchase order not found.');
+                        return;
+                    }
+
+                    const orderInfo = document.getElementById('purchaseOrderInfo');
+                    orderInfo.innerHTML = `
+                        <strong>Order ID:</strong> ${order.OrderID}<br>
+                        <strong>Status:</strong> ${order.OrderStatus}<br>
+                        <strong>Total Cost:</strong> ${order.TotalCost}<br>
+                        <strong>Quantity:</strong> ${order.Quantity}<br>
+                        <strong>Item Details:</strong> ${order.ItemDetails || 'N/A'}
+                    `;
+
+                    document.getElementById('purchaseOrderDetails').style.display = 'block';
+                });
+        }
+
+        function updatePurchaseOrderStatus() {
+            const status = document.getElementById('status').value;
+
+            fetch('http://localhost:3000/update-purchase-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: selectedOrderId, status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || data.error);
+                if (data.message) {
+                    document.getElementById('purchaseOrderDetails').style.display = 'none';
+                    fetchPurchaseOrders();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating purchase order status:', error);
+                alert('An error occurred while updating the purchase order status.');
+            });
+        }
+    </script>
+</body>
+</html>

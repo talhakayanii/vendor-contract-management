@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Contracts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #contractList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .contract-card {
+            width: calc(33.333% - 10px);
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .contract-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .contract-card h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+
+        .contract-card p {
+            margin: 5px 0;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .contract-details {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .contract-details h3 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vendor Contracts</h1>
+    <label for="vendorId">Enter Vendor ID:</label>
+    <input type="text" id="vendorId">
+    <button onclick="fetchContracts()">Get Contracts</button>
+
+    <h2>Contracts:</h2>
+    <div id="contractList"></div>
+
+    <div class="contract-details" id="contractDetails" style="display: none;">
+        <h3>Contract Details</h3>
+        <p id="contractInfo"></p>
+        <label for="status">Change Status:</label>
+        <select id="status">
+            <option value="Pending">Pending</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+        <button onclick="updateStatus()">Update Status</button>
+    </div>
+
+    <script>
+        let selectedContractId;
+
+        function fetchContracts() {
+            const vendorId = document.getElementById('vendorId').value;
+            if (!vendorId) {
+                alert('Please enter a Vendor ID.');
+                return;
+            }
+
+            fetch(`http://localhost:3000/get-contracts?vendorId=${vendorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    const contractList = document.getElementById('contractList');
+                    contractList.innerHTML = '';
+
+                    data.contracts.forEach(contract => {
+                        const contractCard = document.createElement('div');
+                        contractCard.className = 'contract-card';
+
+                        contractCard.innerHTML = `
+                            <h3>Contract ID: ${contract.ContractID}</h3>
+                            <p><strong>Status:</strong> ${contract.Status}</p>
+                            <p><strong>Start Date:</strong> ${contract.StartDate}</p>
+                            <p><strong>End Date:</strong> ${contract.EndDate}</p>
+                            <button onclick="displayContractDetails(${contract.ContractID})">See Details</button>
+                        `;
+
+                        contractList.appendChild(contractCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching contracts:', error);
+                    alert('An error occurred while fetching contracts.');
+                });
+        }
+
+        function displayContractDetails(contractId) {
+            selectedContractId = contractId;
+
+            fetch(`http://localhost:3000/get-contracts?vendorId=${document.getElementById('vendorId').value}`)
+                .then(response => response.json())
+                .then(data => {
+                    const contract = data.contracts.find(contract => contract.ContractID === selectedContractId);
+
+                    if (!contract) {
+                        alert('Contract not found.');
+                        return;
+                    }
+
+                    const contractInfo = document.getElementById('contractInfo');
+                    contractInfo.innerHTML = `
+                        <strong>Contract ID:</strong> ${contract.ContractID}<br>
+                        <strong>Status:</strong> ${contract.Status}<br>
+                        <strong>Start Date:</strong> ${contract.StartDate}<br>
+                        <strong>End Date:</strong> ${contract.EndDate}<br>
+                        <strong>Terms:</strong> ${contract.Terms || 'N/A'}<br>
+                        <strong>Conditions:</strong> ${contract.Conditions || 'N/A'}<br>
+                        <strong>Special Clauses:</strong> ${contract.SpecialClauses || 'N/A'}
+                    `;
+
+                    document.getElementById('contractDetails').style.display = 'block';
+                });
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status').value;
+            if (!selectedContractId) {
+                alert('No contract selected.');
+                return;
+            }
+
+            fetch('http://localhost:3000/update-contract', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contractId: selectedContractId, status })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    if (data.message) {
+                        document.getElementById('contractDetails').style.display = 'none';
+                        fetchContracts();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating contract status:', error);
+                    alert('An error occurred while updating the status.');
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('images/bal.gif');
+            background-size: cover;
+            background-position: center 0px;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #fff;
+            height: 100vh;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 50px;
+            color: #fff;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
+            background: linear-gradient(90deg, #ff69b4, #77c1ec);
+            padding: 8px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 0px;
+        }
+
+        .greeting {
+            position: absolute;
+            top: 6px;
+            right: 20px;
+            padding: 6px 14px;
+            background-color: #87cefa;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            border: 2px solid #4682b4;
+            border-radius: 12px;
+            box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        }
+
+        .greeting:hover {
+            background-color: #4682b4;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(70, 130, 180, 0.6);
+        }
+
+        p {
+            text-align: center;
+            font-size: 18px;
+            color: #ddd;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .hamburger {
+            position: fixed;
+            top: 9px;
+            left: 20px;
+            cursor: pointer;
+            z-index: 11;
+        }
+
+        .hamburger div {
+            width: 35px;
+            height: 5px;
+            margin: 6px 0;
+            background-color: #050101;
+            transition: 0.4s;
+        }
+
+        .menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 10;
+            padding-top: 60px;
+            color: #fff;
+        }
+
+        .menu a {
+            display: block;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 18px;
+            border-bottom: 1px solid #fff;
+            transition: background-color 0.3s;
+        }
+
+        .menu a:hover {
+            background-color: #4682b4;
+        }
+
+        .menu.active {
+            transform: translateX(0);
+        }
+
+        .hamburger.active div:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .hamburger.active div:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active div:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="greeting" class="greeting"></div>
+
+    <div class="hamburger" onclick="toggleMenu()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <div class="menu" id="menu">
+        <a href="vendorgetcontract.html">Manage Contracts</a>
+        <a href="vendorgetpurchaseorder.html">Manage Purchase Order</a>
+        <a href="sendmessage.html">Send Message</a>
+        <a href="receivemessage.html">View Messages</a>
+    </div>
+
+    <h1>Vendor Dashboard</h1>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+
+        function setGreeting(name) {
+            document.getElementById('greeting').textContent = `Hello, ${name}`;
+        }
+
+        if (name) {
+            sessionStorage.setItem('username', name);
+            setGreeting(name);
+        } else {
+            const savedName = sessionStorage.getItem('username');
+            if (savedName) {
+                setGreeting(savedName);
+            } else {
+                setGreeting('Guest');
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('menu').classList.toggle('active');
+            document.querySelector('.hamburger').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

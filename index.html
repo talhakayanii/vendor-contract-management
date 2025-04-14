@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup/Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('images/abc.gif') no-repeat center center/cover;
+        }
+        .container {
+            width: 300px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            margin-top: 5px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgb(255, 0, 0);
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .vendor-fields, .department-fields {
+            display: none;
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .auth-toggle a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+        .form-toggle {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .success-message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="authContainer">
+        <h1 id="authTitle">Signup</h1>
+        <div class="success-message" id="successMessage">Signup Successful! Please login to continue.</div>
+        <form id="signupForm" method="POST" action="/signup">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <label for="role">Role</label>
+            <select id="role" name="role" required>
+                <option value="">Select Role</option>
+                <option value="Vendor">Vendor</option>
+                <option value="Department">Department</option>
+            </select>
+            <div class="vendor-fields">
+                <label for="serviceCategory">Service Category</label>
+                <input type="text" id="serviceCategory" name="serviceCategory">
+                <label for="complianceCertifications">Compliance Certifications</label>
+                <textarea id="complianceCertifications" name="complianceCertifications"></textarea>
+            </div>
+            <div class="department-fields">
+                <label for="budget">Budget</label>
+                <input type="number" id="budget" name="budget" min="0" placeholder="Set budget for the department">
+            </div>
+            <button type="submit">Signup</button>
+        </form>
+        <form id="loginForm" method="POST" action="/login" style="display: none;">
+            <label for="loginEmail">Email</label><br>
+            <input type="email" id="loginEmail" name="loginEmail" required><br>
+            <label for="loginPassword">Password</label><br>
+            <input type="password" id="loginPassword" name="loginPassword" required><br>
+            <button type="submit">Login</button>
+        </form>
+        <div class="auth-toggle" id="authToggle">
+            <p id="authMessage">Already have an account? <a href="javascript:void(0);" id="toggleToLogin">Login</a></p>
+        </div>
+    </div>
+
+    <script>
+        const roleSelect = document.getElementById("role");
+        const vendorFields = document.querySelector(".vendor-fields");
+        const departmentFields = document.querySelector(".department-fields");
+        const signupForm = document.getElementById("signupForm");
+        const loginForm = document.getElementById("loginForm");
+        const authMessage = document.getElementById("authMessage");
+        const authTitle = document.getElementById("authTitle");
+        const authToggle = document.getElementById("toggleToLogin");
+        const successMessage = document.getElementById("successMessage");
+
+        roleSelect.addEventListener("change", () => {
+            if (roleSelect.value === "Vendor") {
+                vendorFields.style.display = "block";
+                departmentFields.style.display = "none";
+            } else if (roleSelect.value === "Department") {
+                vendorFields.style.display = "none";
+                departmentFields.style.display = "block";
+            } else {
+                vendorFields.style.display = "none";
+                departmentFields.style.display = "none";
+            }
+        });
+
+        authToggle.addEventListener("click", () => {
+            signupForm.style.display = signupForm.style.display === "none" ? "block" : "none";
+            loginForm.style.display = loginForm.style.display === "none" ? "block" : "none";
+            if (signupForm.style.display === "none") {
+                authTitle.textContent = "Login";
+                authMessage.innerHTML = "Don't have an account? <a href='javascript:void(0);' id='toggleToSignup'>Signup</a>";
+                document.getElementById("toggleToSignup").addEventListener("click", toggleToSignup);
+            } else {
+                authTitle.textContent = "Signup";
+                authMessage.innerHTML = "Already have an account? <a href='javascript:void(0);' id='toggleToLogin'>Login</a>";
+                document.getElementById("toggleToLogin").addEventListener("click", toggleToLogin);
+            }
+        });
+
+        function toggleToSignup() {
+            signupForm.style.display = "block";
+            loginForm.style.display = "none";
+            authTitle.textContent = "Signup";
+            authMessage.innerHTML = "Already have an account? <a href='javascript:void(0);' id='toggleToLogin'>Login</a>";
+            document.getElementById("toggleToLogin").addEventListener("click", toggleToLogin);
+        }
+
+        function toggleToLogin() {
+            signupForm.style.display = "none";
+            loginForm.style.display = "block";
+            authTitle.textContent = "Login";
+            authMessage.innerHTML = "Don't have an account? <a href='javascript:void(0);' id='toggleToSignup'>Signup</a>";
+            document.getElementById("toggleToSignup").addEventListener("click", toggleToSignup);
+        }
+
+        
+    </script>
+</body>
+</html>

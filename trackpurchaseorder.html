@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            color: #fff;
+        }
+        .container {
+            width: 400px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #34c759;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #28a745;
+        }
+        .order-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .order-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .order-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .order-details {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>View Purchase Orders</h1>
+        <form id="departmentForm">
+            <label for="departmentId">Enter Department ID</label>
+            <input type="number" id="departmentId" name="departmentId" min="1" required>
+            <button type="submit">Fetch Orders</button>
+        </form>
+        <div class="order-list" id="orderList"></div>
+        <div class="order-details" id="orderDetails" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById("departmentForm");
+        const orderList = document.getElementById("orderList");
+        const orderDetails = document.getElementById("orderDetails");
+    
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const departmentId = document.getElementById("departmentId").value;
+    
+            try {
+                const response = await fetch(`/purchase-orders?departmentId=${departmentId}`);
+                const orders = await response.json();
+    
+                orderList.innerHTML = orders.map(order => ` 
+                    <div class="order-item" data-id="${order.OrderID}">
+                        Order ID: ${order.OrderID} - Status: ${order.OrderStatus}
+                    </div>
+                `).join("");
+    
+                document.querySelectorAll(".order-item").forEach(item => {
+                    item.addEventListener("click", async () => {
+                        const orderId = item.getAttribute("data-id");
+    
+                        const orderResponse = await fetch(`/order-details?orderId=${orderId}`);
+                        const orderDetailsData = await orderResponse.json();
+    
+                        orderDetails.style.display = "block";
+                        orderDetails.innerHTML = `
+                            <h3>Order Details</h3>
+                            <p><strong>Order ID:</strong> ${orderDetailsData.OrderID}</p>
+                            <p><strong>Vendor ID:</strong> ${orderDetailsData.VendorID}</p>
+                            <p><strong>Item Details:</strong> ${orderDetailsData.ItemDetails}</p>
+                            <p><strong>Quantity:</strong> ${orderDetailsData.Quantity}</p>
+                            <p><strong>Total Cost:</strong> ${orderDetailsData.TotalCost}</p>
+                            <p><strong>Status:</strong> ${orderDetailsData.OrderStatus}</p>
+                        `;
+                    });
+                });
+            } catch (error) {
+                alert("Error fetching orders: " + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 16px;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .notification-list {
+            margin-top: 20px;
+            list-style-type: none;
+            padding: 0;
+        }
+        .notification-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .notification-item p {
+            margin: 5px 0;
+        }
+        .notification-item h4 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>View Messages</h2>
+        <div class="form-group">
+            <label for="userId">Enter ID:</label>
+            <input type="number" id="userId" placeholder="">
+        </div>
+        <button onclick="getNotifications()">Get Messages</button>
+
+        <div id="error-message" class="error"></div>
+
+        <ul id="notification-list" class="notification-list"></ul>
+    </div>
+
+    <script>
+        function getNotifications() {
+            const userId = document.getElementById('userId').value;
+            const notificationList = document.getElementById('notification-list');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
+            notificationList.innerHTML = '';
+
+            if (!userId) {
+                errorMessage.textContent = 'Please enter a valid user ID.';
+                return;
+            }
+
+            fetch(`/get-notifications/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.notifications.length > 0) {
+                            data.notifications.forEach(notification => {
+                                const li = document.createElement('li');
+                                li.className = 'notification-item';
+                                li.innerHTML = `
+                                    <h4>Message: ${notification.Message}</h4>
+                                    <p><strong>Sender:</strong> ${notification.SentBy}</p>
+                                `;
+                                notificationList.appendChild(li);
+                            });
+                        } else {
+                            errorMessage.textContent = 'No notifications found for this user.';
+                        }
+                    } else {
+                        errorMessage.textContent = 'Failed to load notifications.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching notifications:', error);
+                    errorMessage.textContent = 'There was an error loading notifications.';
+                });
+        }
+    </script>
+</body>
+</html>

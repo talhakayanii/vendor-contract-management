@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Renewal Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #343a40;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: left;
+            color: #495057;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contract Renewals</h1>
+        <form id="checkRenewalsForm">
+            <label for="departmentId">Enter Department ID:</label>
+            <input type="text" id="departmentId" name="departmentId" required placeholder="e.g., 101">
+            <button type="button" id="checkRenewals">Check Contract Renewals</button>
+        </form>
+        <div id="renewalResults" class="result"></div>
+    </div>
+    <script>
+        document.getElementById('checkRenewals').addEventListener('click', () => {
+            const departmentId = document.getElementById('departmentId').value;
+
+            fetch(`/check-contract-renewals?departmentId=${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('renewalResults');
+                    if (data.length === 0) {
+                        resultDiv.innerHTML = 'No contracts are nearing expiry.';
+                    } else {
+                        resultDiv.innerHTML = '<b>Contracts nearing expiry:</b><ul>' +
+                            data.map(contract => `
+                                <li>Contract ID: ${contract.ContractID}, Assigned To: Vendor ${contract.AssignedTo}, Expiry: ${contract.EndDate}</li>
+                            `).join('') + '</ul>';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('renewalResults').innerText = 'An error occurred while fetching contract renewals.';
+                    console.error(err);
+                });
+        });
+    </script>
+</body>
+</html>

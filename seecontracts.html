@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contracts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="number"] {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        li:hover {
+            background-color: #e9e9e9;
+        }
+        .details {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef5fc;
+            border: 1px solid #b3d4fc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contract Details</h1>
+        <form id="contractForm">
+            <input type="number" id="departmentId" placeholder="Enter Department ID" required>
+            <button type="submit">Fetch Contracts</button>
+        </form>
+        <ul id="contractList"></ul>
+        <div class="details" id="contractDetails"></div>
+    </div>
+
+    <script>
+        
+        document.getElementById('contractForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const departmentId = document.getElementById('departmentId').value;
+            fetchContracts(departmentId);
+        });
+
+        
+        async function fetchContracts(departmentId) {
+            try {
+                const response = await fetch(`http://localhost:3000/contracts/${departmentId}`);
+                const contracts = await response.json();
+
+                const contractList = document.getElementById('contractList');
+                contractList.innerHTML = ''; 
+                document.getElementById('contractDetails').style.display = 'none';
+
+                contracts.forEach(contract => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Contract ${contract.ContractID}: Status - ${contract.Status}`;
+                    listItem.addEventListener('click', () => showContractDetails(contract));
+                    contractList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching contracts:', error);
+            }
+        }
+
+       
+        function showContractDetails(contract) {
+            const contractDetails = document.getElementById('contractDetails');
+            contractDetails.innerHTML = `
+                <h2>Contract ${contract.ContractID}</h2>
+                <p><strong>Assigned To (VendorID):</strong> ${contract.AssignedTo}</p>
+                <p><strong>Terms:</strong> ${contract.Terms || 'N/A'}</p>
+                <p><strong>Conditions:</strong> ${contract.Conditions || 'N/A'}</p>
+                <p><strong>Special Clauses:</strong> ${contract.SpecialClauses || 'N/A'}</p>
+                <p><strong>Start Date:</strong> ${contract.StartDate}</p>
+                <p><strong>End Date:</strong> ${contract.EndDate}</p>
+                <p><strong>Status:</strong> ${contract.Status}</p>
+            `;
+            contractDetails.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
